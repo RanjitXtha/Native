@@ -5,7 +5,7 @@ import Header from '../../components/header'
 
 export default function TabsLayout(){
     return <Tabs screenOptions={{tabBarActiveTintColor:"red",
-        header:()=> <Header />,
+        headerShown:false,
 
     sceneStyle:{backgroundColor:'white'}}}>
         <Tabs.Screen name="index" options={{
