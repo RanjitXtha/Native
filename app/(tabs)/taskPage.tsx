@@ -11,7 +11,6 @@ export default function TasksPage(){
         <SafeAreaView  style={{paddingHorizontal:20,flex:1,marginTop:10}}>
         <View>
             <Text style={{fontWeight:900,fontSize:24,marginVertical:10}}>Tasks:</Text>
-            <Categories />
         </View>
         <ScrollView style={{marginTop:14}} showsVerticalScrollIndicator={false}>
             <Tasklist />

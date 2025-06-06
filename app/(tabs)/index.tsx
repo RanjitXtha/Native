@@ -77,12 +77,9 @@ export default function Index() {
                 </View>
             </View>
     <View style={{ flex: 1,  justifyContent:"flex-start",  alignItems:'flex-start', paddingHorizontal:20,  }}>
-   <Categories />
+  
 
-<View style={styles.taskHeader}>
-  <Text>Tasks:</Text>
-  <Text>View all</Text>
-</View>
+
        
        <Tasklist />
       
@@ -93,12 +90,7 @@ export default function Index() {
 }
 
 const styles=StyleSheet.create({
-  taskHeader:{
-    marginVertical:20,
-    flexDirection:'row',
-    justifyContent:'space-between',
-    width:'100%'
-  },
+
   taskCard:{
     width:'100%',
     paddingVertical:16,
