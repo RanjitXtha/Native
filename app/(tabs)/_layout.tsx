@@ -30,7 +30,7 @@ export default function TabsLayout(){
 
         <Tabs.Screen name="post" options={{
             tabBarIcon:({color})=>(
-                <LinearGradient style={{width:54,height:54,justifyContent:'center',borderRadius:14,alignItems:'center',
+                <LinearGradient style={{width:54,height:54,borderRadius:14,alignItems:'center',
                      transform: [{ translateY: -10 }], 
             elevation: 6, 
                 }} colors={['#8b5cf6', '#a855f7', '#d946ef']}>
