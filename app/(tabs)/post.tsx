@@ -1,10 +1,19 @@
-import { TextInput, View , Text,StyleSheet} from "react-native";
+import { TextInput, View , Text,StyleSheet,Pressable} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { LinearGradient } from "expo-linear-gradient";
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useState } from "react";
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+
 
 export default function Post(){
+    const [priority,setPriority] = useState<string>('Low Priority');
+    const [iconIndex,setIconIndex] = useState(0);
+    
+    const icons = ['📝', '💰', '🛒', '📱', '🎨', '📢', '📊', '💻', '📋', '🚀', '⚡', '🎯'];
+    
     return(
         <SafeAreaView style={{paddingHorizontal:20,paddingVertical:10}}>
             <View style={{justifyContent:'space-between',alignItems:'center',flexDirection:'row'}}>
@@ -12,17 +21,83 @@ export default function Post(){
                 <Text style={styles.title}>Create Task</Text>
                 <View style={{padding:10,borderRadius:8}}></View>
             </View>
+        
+         <View style={[styles.inputCard,{marginTop:20}]}>
+            <View style={{alignItems:'center',flexDirection:'row',gap:10}}>
+                <Ionicons name="color-palette-outline" style={styles.icon} size={24} color="black" />
+                <Text style={styles.title}>Choose Task Icon:</Text>
+            </View>
+            <View style={{marginBottom:10,flexDirection:'row',justifyContent:'space-between',gap:14,flexWrap:'wrap'}}>
+                {
+                icons.map((icon,index)=>(
+                    <Pressable key={index}  style={{
+                    width: '12%',
+                    aspectRatio:1,
+        }} onPress={()=>setIconIndex(index)}> 
+                    <LinearGradient key={index} start={{x:0,y:0}} end={{x:1,y:0}} colors={iconIndex===index?['#8b5cf6', '#a855f7', '#d946ef']:['white','white']} style={{
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderRadius: 10,
+                    padding:6,
+        }}><Text style={{fontSize:24}}>{icon}</Text>
+        </LinearGradient>
+        </Pressable>
+                    
+                ))
+                }
+            </View>
             
-        <View style={[styles.inputCard,{marginTop:20}]}>
-            <View style={{alignItems:'center',flexDirection:'row',gap:10}}><MaterialCommunityIcons style={styles.icon} name="note-text-outline" size={24} color="black" /><Text style={styles.title}>Title:</Text></View>
+        </View>
+            
+        <View style={styles.inputCard}>
+            <View style={{alignItems:'center',flexDirection:'row',gap:10}}>
+                <MaterialCommunityIcons style={styles.icon} name="note-text-outline" size={24} color="black" />
+                <Text style={styles.title}>Title:</Text>
+            </View>
             <TextInput style={styles.input} placeholder="Enter Title" />
-           
         </View>
-        <View>
-<Text>Description:</Text>
-            <TextInput style={styles.input} placeholder="Enter Description" />
+
+        <View style={styles.inputCard}>
+            <View style={{alignItems:'center',flexDirection:'row',gap:10}}>
+                <MaterialCommunityIcons style={styles.icon} name="note-text-outline" size={24} color="black" />
+                <Text style={styles.title}>Description:</Text>
+            </View>
+            <TextInput multiline={true} numberOfLines={3} style={[styles.input,{height: 72}]} placeholder="Enter Description" />
         </View>
-         
+
+
+        <View style={styles.inputCard}>
+                <View style={{alignItems:'center',flexDirection:'row',gap:10}}>
+                    <MaterialIcons name="emoji-flags" style={styles.icon} size={24} color="black" />
+                    <Text style={styles.title}>Priority</Text>
+                </View>
+                
+                <View style={{flexDirection:'row',justifyContent:'center',paddingVertical:10,gap:8}}>
+                    <Pressable onPress={()=>setPriority('Low Priority')}>
+                    <LinearGradient start={{x:1,y:0}} end={{x:0,y:0}} style={styles.bubble} colors={priority==="Low Priority"?['#10b981', '#22c55e', '#84cc16']:['white','white']}>
+                        <Text style={{textAlign:'center',color:priority==="Low Priority"?'white':'black',fontWeight:'bold'}}>Low Priority</Text>
+                    </LinearGradient>
+                    </Pressable>
+
+                    <Pressable onPress={()=>setPriority('Medium Priority')}>
+                    <LinearGradient start={{x:1,y:0}} end={{x:0,y:0}} style={styles.bubble} colors={priority==="Medium Priority"?['#f59e0b', '#facc15', '#f97316']:['white','white']}>
+                        <Text style={{textAlign:'center',color:priority==="Medium Priority"?'white':'black',fontWeight:'bold'}}>Medium Priority</Text>
+                    </LinearGradient>
+                    </Pressable>
+                 
+                    <Pressable onPress={()=>setPriority('High Priority')}>
+                    <LinearGradient start={{x:1,y:0}} end={{x:0,y:0}} style={styles.bubble} colors={priority==="High Priority"?['#ec4899', '#f43f5e', '#f97316']:['white','white']}>
+                        <Text style={{textAlign:'center',color:priority==="High Priority"?'white':'black',fontWeight:'bold'}}>High Priority</Text>
+                    </LinearGradient>
+                    </Pressable>
+                </View>
+            </View>
+
+            <Pressable style={{marginTop:16}} >
+            <LinearGradient style={[styles.bubble,{elevation:6,padding:16,width:'100%',alignItems:'center', justifyContent:'center'}]} start={{x:0,y:0}} end={{x:1,y:0}} colors={['#8b5cf6', '#a855f7', '#d946ef']}>
+                <AntDesign name="filetext1" size={24} color="white" />
+                <Text style={{marginLeft:6,color:'white',fontWeight:'bold',fontSize:18}}>Create Task</Text>
+                </LinearGradient></Pressable>
         </SafeAreaView>
     )
 }
@@ -43,6 +118,7 @@ const styles = StyleSheet.create({
         borderWidth:0,
         paddingVertical:10,
         paddingHorizontal:20,
+        textAlignVertical: 'top'
     },
     inputCard:{
         backgroundColor:'white',
@@ -53,5 +129,18 @@ const styles = StyleSheet.create({
         borderRadius:14,
         marginBottom:20
         
-    }
+    },
+    bubble:{
+    borderRadius:16,
+    width:100,
+    padding:8,
+    paddingHorizontal:12,
+    alignItems:'center',
+    flexDirection:'row',
+    gap:6,
+    marginRight:8,
+    fontWeight:'bold',
+    
+
+  }
 })

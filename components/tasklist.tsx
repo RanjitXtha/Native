@@ -81,9 +81,9 @@ export default function Tasklist(){
 
 function setPriorityColor (color:string):[string,string,...string[]]{
   switch(color){
-    case 'Medium':return ['#ec4899', '#f43f5e', '#f97316'];
+    case 'Medium':return ['#f59e0b', '#facc15', '#f97316'];
     case 'Low': return ['#10b981', '#22c55e', '#84cc16'];
-    case 'High':return ['#f59e0b', '#facc15', '#f97316'] ;
+    case 'High':return['#ec4899', '#f43f5e', '#f97316']  ;
     default:
       return ['#6b7280', '#4b5563'];
   }
