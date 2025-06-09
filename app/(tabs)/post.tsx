@@ -9,13 +9,17 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Feather from '@expo/vector-icons/Feather';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 export default function Post(){
     const [priority,setPriority] = useState<string>('Low Priority');
     const [iconIndex,setIconIndex] = useState(0);
     const [date, setDate] = useState(new Date());
-  const [time, setTime] = useState(new Date());
-  const [showDate, setShowDate] = useState(false);
-  const [showTime, setShowTime] = useState(false);
+    const [time, setTime] = useState(new Date());
+    const [showDate, setShowDate] = useState(false);
+    const [showTime, setShowTime] = useState(false);
+    const [title, setTitle] = useState<string>('');
+    const [description, setDirection] = useState<string>('');
 
 
  const handleChange = (dataType: 'date' | 'time') => (
@@ -40,8 +44,31 @@ export default function Post(){
 };
 
 
-const handleSubmit=()=>{
-    
+const handleSubmit=async()=>{
+     try {
+    const taskData = {
+      title,
+      description,
+      priority,
+      date,
+      time,
+      icon: icons[iconIndex],
+    };
+console.log(taskData);
+    // Read existing tasks
+    const existingTasks = await AsyncStorage.getItem('posts');
+    const tasksArray = existingTasks ? JSON.parse(existingTasks) : [];
+
+    // Append new task
+    tasksArray.push(taskData);
+
+    // Save updated tasks array
+    await AsyncStorage.setItem('posts', JSON.stringify(tasksArray));
+
+    console.log('Task saved:');
+  } catch (error) {
+    console.error('Error saving task:', error);
+  }
 }
     const icons = ['📝', '💰', '🛒', '📱', '🎨', '📢', '📊', '💻', '📋', '🚀', '⚡', '🎯'];
     
@@ -86,7 +113,7 @@ const handleSubmit=()=>{
                 <MaterialCommunityIcons style={[styles.icon,{backgroundColor:'lightgreen'}]} name="note-text-outline" size={24} color="black" />
                 <Text style={styles.title}>Title:</Text>
             </View>
-            <TextInput style={styles.input} placeholder="Enter Title" />
+            <TextInput style={styles.input} onChangeText={text=>setTitle(text)} placeholder="Enter Title" />
         </View>
 
         <View style={styles.inputCard}>
@@ -94,7 +121,7 @@ const handleSubmit=()=>{
                 <MaterialCommunityIcons style={[styles.icon,{backgroundColor:'magenta'}]} name="note-text-outline" size={24} color="black" />
                 <Text style={styles.title}>Description:</Text>
             </View>
-            <TextInput multiline={true} numberOfLines={3} style={[styles.input,{height: 72}]} placeholder="Enter Description" />
+            <TextInput multiline={true} onChangeText={text=>setDirection(text)} numberOfLines={3} style={[styles.input,{height: 72}]} placeholder="Enter Description" />
         </View>
 
         <View style={{flexDirection:'row',justifyContent:'space-between',gap:16}}>
@@ -161,7 +188,7 @@ const handleSubmit=()=>{
                 </View>
             </View>
 
-            <Pressable style={{marginTop:16}} >
+            <Pressable onPress={handleSubmit} style={{marginTop:16}} >
             <LinearGradient style={[styles.bubble,{elevation:6,padding:16,width:'100%',alignItems:'center', justifyContent:'center'}]} start={{x:0,y:0}} end={{x:1,y:0}} colors={['#8b5cf6', '#a855f7', '#d946ef']}>
                 <AntDesign name="filetext1" size={24} color="white" />
                 <Text style={{marginLeft:6,color:'white',fontWeight:'bold',fontSize:18}}>Create Task</Text>

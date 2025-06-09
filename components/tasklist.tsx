@@ -1,9 +1,10 @@
 import { View, Text, StyleSheet , Pressable,ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Feather from '@expo/vector-icons/Feather';
-import { useState } from "react";
-
-const tasks = [
+import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSortedScreens } from "expo-router/build/useScreens";
+const taskse = [
   {
     title:'Finance Landing',
     description:'Design System',
@@ -61,11 +62,41 @@ const categoriesList = [
   },
 ];
 
+
+const getAllTasks = async () => {
+  const tasks = await AsyncStorage.getItem('posts');
+  return tasks ? JSON.parse(tasks) : [];
+};
+
+
+
 export default function Tasklist(){
+  interface taskType {
+    title:string,
+    description:string,
+    priority:string,
+    time:Date,
+    date:Date,
+    icon:string
+  }
+    const [tasks,setTasks] = useState<taskType[]>([])
     const [listType, setListType] = useState(0);
-    const [filteredTasks , setFilteredTasks] = useState(tasks);
+    const [filteredTasks , setFilteredTasks] = useState<taskType[]>([]);
 
+  useEffect(()=>{
 
+    async function getData(){
+    const getTask = await getAllTasks();
+    console.log(getTask)
+    setTasks(getTask);
+    setFilteredTasks(getTask);
+    }
+
+    getData()
+
+   
+ 
+  },[])
     function filterTasks(){
       switch(listType){
         case 0: {
@@ -131,7 +162,7 @@ const colors = [
                       <LinearGradient start={{x:0,y:0}} end={{x:1,y:0}} colors={setPriorityColor(task.priority)} style={[styles.bubble]}><Text style={{color:'white',fontWeight:'bold'}}>{task.priority} priority</Text></LinearGradient>
                       <View  style={[styles.bubble,{alignItems:'center',gap:6,backgroundColor:'white'}]}>
                         <Feather name="calendar" size={20} color="black" />
-                        <Text style={{fontWeight:'bold'}}>{task.time}</Text>
+                        {/* <Text style={{fontWeight:'bold'}}>{task.time.toLocaleDateString()}</Text> */}
                     </View>
                       </View>
                      
