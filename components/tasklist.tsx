@@ -4,6 +4,8 @@ import Feather from '@expo/vector-icons/Feather';
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSortedScreens } from "expo-router/build/useScreens";
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 const taskse = [
   {
     title:'Finance Landing',
@@ -62,13 +64,6 @@ const categoriesList = [
   },
 ];
 
-
-const getAllTasks = async () => {
-  
-};
-
-
-
 export default function Tasklist(){
   interface taskType {
     title:string,
@@ -82,41 +77,103 @@ export default function Tasklist(){
     const [listType, setListType] = useState(0);
     const [filteredTasks , setFilteredTasks] = useState<taskType[]>([]);
 
-useEffect(() => {
-  async function getData() {
-    const tasks = await AsyncStorage.getItem('posts');
-    if (tasks) {
-      const parsedData = JSON.parse(tasks);
+useFocusEffect(
+  useCallback(() => {
+    const getStatus=(task:any)=>{
+       const now = new Date();
+                    const taskDateTime = new Date(task.date);
+  const taskTime = new Date(task.time);
+  taskDateTime.setHours(taskTime.getHours());
+  taskDateTime.setMinutes(taskTime.getMinutes());
+  taskDateTime.setSeconds(0);
+  taskDateTime.setMilliseconds(0);
 
-      // 🔧 Convert string date/time back to Date objects
-      const data = parsedData.map((task: any) => ({
-        ...task,
-        date: new Date(task.date),
-        time: new Date(task.time),
-      }));
 
-      console.log(data);
-      setTasks(data);         
-      setFilteredTasks(data);
-    } else {
-      setTasks([]);
-      setFilteredTasks([]);
-    }
+  const diffMs = taskDateTime.getTime() - now.getTime();
+
+  if (diffMs > 0) {
+    // Task is in the future (upcoming)
+    const diffMinutes = Math.floor(diffMs / (1000 * 60)) % 60;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60)) % 24;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    return {statusText:`Upcoming in ${diffDays}d ${diffHours}h ${diffMinutes}m`,status:'Upcoming'}
+  } else if (
+    taskDateTime.toDateString() === now.toDateString()
+  ) {
+    // Same date as today = ongoing
+    return {statusText:"Ongoing",status:"Ongoing"};
+  } else {
+    // Task is in the past
+     return {statusText:"Completed",status:"Completed"};
   }
+    }
+    const getData = async () => {
+      const tasks = await AsyncStorage.getItem('posts');
+      if (tasks) {
+        const parsedData = JSON.parse(tasks);
+       const data = parsedData.map((task: any) => {
+  const statusObj = getStatus(task);
+  return {
+    ...task,
+    date: new Date(task.date),
+    time: new Date(task.time),
+    statusText: statusObj.statusText,
+    status: statusObj.status,
+  };
+});
 
-  getData();
-}, []);
-    function filterTasks(){
-      switch(listType){
-        case 0: {
-          setFilteredTasks(tasks)
-          break;
-        }
-        case 1: {
-          
-        }
+        console.log(data)
+
+        setTasks(data);
+        setFilteredTasks(data);
+      } else {
+        setTasks([]);
+        setFilteredTasks([]);
+      }
+    };
+
+    getData();
+  }, [])
+);
+
+
+useEffect(() => {
+  function filterTasks() {
+    
+    switch(listType){
+      case 0: {
+        setFilteredTasks(tasks);
+        break;
+      }
+      case 1:{
+        const filtered = tasks.filter((task:any)=>task.status === "Ongoing");
+        setFilteredTasks(filtered);
+        break;
+      }case 2:
+      {
+        const filtered = tasks.filter((task:any)=>task.status==="Upcoming");
+        setFilteredTasks(filtered);
+        break;
+      }
+      case 3:{
+        const filtered = tasks.filter((task:any)=>task.status ==="Completed");
+        setFilteredTasks(filtered);
+        break;
+      }
+      default:{
+        setFilteredTasks(tasks);
+        break;
       }
     }
+
+
+  }
+
+  filterTasks();
+}, [listType, tasks]);
+
+    
 
 
   const handleDelete = async (index: number) => {
@@ -178,8 +235,37 @@ const colors = [
             </View>
           {
                 /**colors[index%colors.length].primary**/
-                  tasks && tasks.map((task,index)=>(
-                  <View key={index} style={[styles.taskCard,{marginBottom:15,backgroundColor:`white`}]}>
+                  filteredTasks && filteredTasks.map((task,index)=>{
+                    const now = new Date();
+                    const taskDateTime = new Date(task.date);
+  const taskTime = new Date(task.time);
+  taskDateTime.setHours(taskTime.getHours());
+  taskDateTime.setMinutes(taskTime.getMinutes());
+  taskDateTime.setSeconds(0);
+  taskDateTime.setMilliseconds(0);
+
+  // Default status
+  let statusText = "";
+
+  const diffMs = taskDateTime.getTime() - now.getTime();
+
+  if (diffMs > 0) {
+    // Task is in the future (upcoming)
+    const diffMinutes = Math.floor(diffMs / (1000 * 60)) % 60;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60)) % 24;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    statusText = `Upcoming in ${diffDays}d ${diffHours}h ${diffMinutes}m`;
+  } else if (
+    taskDateTime.toDateString() === now.toDateString()
+  ) {
+    // Same date as today = ongoing
+    statusText = "Ongoing";
+  } else {
+    // Task is in the past
+    statusText = "Completed";
+  }
+                  return (<View key={index} style={[styles.taskCard,{marginBottom:15,backgroundColor:`white`}]}>
                     <View>
                        <Text style={{fontSize:18,fontWeight:500}}>{task.title}</Text>
                        <Button title="X" onPress={()=>handleDelete(index)}/>
@@ -190,12 +276,14 @@ const colors = [
                       <LinearGradient start={{x:0,y:0}} end={{x:1,y:0}} colors={setPriorityColor(task.priority)} style={[styles.bubble]}><Text style={{color:'white',fontWeight:'bold'}}>{task.priority}</Text></LinearGradient>
                       <View  style={[styles.bubble,{alignItems:'center',gap:6,backgroundColor:'white'}]}>
                         <Feather name="calendar" size={20} color="black" />
-                        <Text style={{fontWeight:'bold'}}>{task.time.toLocaleTimeString()}</Text>
+                        <Text style={{fontWeight:'bold'}}>{
+                          statusText
+                          }</Text>
                     </View>
                       </View>
                      
                   </View>
-                  ))
+                  )})
                 }
                   
                </View>
