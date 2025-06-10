@@ -10,6 +10,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Feather from '@expo/vector-icons/Feather';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import uuid from 'react-native-uuid';
 
 export default function Post(){
     const [priority,setPriority] = useState<string>('Low Priority');
@@ -47,12 +48,15 @@ export default function Post(){
 const handleSubmit=async()=>{
      try {
     const taskData = {
+    id:  uuid.v4(),
       title,
       description,
       priority,
       date: date.toISOString(),
       time :time.toISOString(),
+      isCompleted:false,
       icon: icons[iconIndex],
+
     };
 console.log(taskData);
     // Read existing tasks

@@ -45,6 +45,16 @@ const taskse = [
   },
 
 ];
+
+const colors = [
+  {primary:'#ffebee' },
+
+  {primary:'#e6f7fd' },
+
+  
+    {primary:'#fff0e0' },
+
+]
 const categoriesList = [
   {
     name:'All Tasks',
@@ -66,48 +76,57 @@ const categoriesList = [
 
 export default function Tasklist(){
   interface taskType {
+    id:string,
     title:string,
     description:string,
     priority:string,
     time:Date,
     date:Date,
-    icon:string
+    icon:string,
+    status:string,
+    statusText:string,
+    isCompleted:boolean,
   }
     const [tasks,setTasks] = useState<taskType[]>([])
     const [listType, setListType] = useState(0);
     const [filteredTasks , setFilteredTasks] = useState<taskType[]>([]);
 
-useFocusEffect(
-  useCallback(() => {
-    const getStatus=(task:any)=>{
-       const now = new Date();
-                    const taskDateTime = new Date(task.date);
+     const getStatus = (task: any) => {
+  const now = new Date();
+
+  const taskDateTime = new Date(task.date);
   const taskTime = new Date(task.time);
+
+  // Combine date and time into one Date object
   taskDateTime.setHours(taskTime.getHours());
   taskDateTime.setMinutes(taskTime.getMinutes());
   taskDateTime.setSeconds(0);
   taskDateTime.setMilliseconds(0);
 
+  if (task.isCompleted) {
+    return { statusText: "Completed", status: "Completed" };
+  }
 
-  const diffMs = taskDateTime.getTime() - now.getTime();
-
-  if (diffMs > 0) {
-    // Task is in the future (upcoming)
+  if (taskDateTime > now) {
+    // Time difference calculation
+    const diffMs = taskDateTime.getTime() - now.getTime();
     const diffMinutes = Math.floor(diffMs / (1000 * 60)) % 60;
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60)) % 24;
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    return {statusText:`Upcoming in ${diffDays}d ${diffHours}h ${diffMinutes}m`,status:'Upcoming'}
-  } else if (
-    taskDateTime.toDateString() === now.toDateString()
-  ) {
-    // Same date as today = ongoing
-    return {statusText:"Ongoing",status:"Ongoing"};
+    return {
+      statusText: `${diffDays}d ${diffHours}h ${diffMinutes}m`,
+      status: "Upcoming",
+    };
   } else {
-    // Task is in the past
-     return {statusText:"Completed",status:"Completed"};
+    // Task time has passed but is not marked completed
+    return { statusText: "Ongoing", status: "Ongoing" };
   }
-    }
+};
+
+useFocusEffect(
+  useCallback(() => {
+   
     const getData = async () => {
       const tasks = await AsyncStorage.getItem('posts');
       if (tasks) {
@@ -176,10 +195,10 @@ useEffect(() => {
     
 
 
-  const handleDelete = async (index: number) => {
+  const handleDelete = async (taskId:string) => {
   try {
 
-    const updatedTasks = tasks.filter((_, i) => i !== index);
+    const updatedTasks = tasks.filter(task => task.id !== taskId);
     console.log(updatedTasks);
     setTasks(updatedTasks);
 
@@ -190,6 +209,19 @@ useEffect(() => {
   }
 };
 
+const handleComplete = async (taskId: string) => {
+  const updatedTasks = tasks.map(task => {
+    if (task.id === taskId) {
+      const updatedTask = { ...task, isCompleted: true };
+      const statusObj = getStatus(updatedTask);
+      return { ...updatedTask, ...statusObj };
+    }
+    return task;
+  });
+
+  setTasks(updatedTasks);
+  await AsyncStorage.setItem('posts', JSON.stringify(updatedTasks));
+};
 
 function setPriorityColor (color:string):[string,string,...string[]]{
   switch(color){
@@ -200,15 +232,7 @@ function setPriorityColor (color:string):[string,string,...string[]]{
       return ['#6b7280', '#4b5563'];
   }
 }
-const colors = [
-  {primary:'#ffebee' },
 
-  {primary:'#e6f7fd' },
-
-  
-    {primary:'#fff0e0' },
-
-]
 
     return(
         <View style={{width:'100%',flex:1}}>
@@ -235,40 +259,13 @@ const colors = [
             </View>
           {
                 /**colors[index%colors.length].primary**/
-                  filteredTasks && filteredTasks.map((task,index)=>{
-                    const now = new Date();
-                    const taskDateTime = new Date(task.date);
-  const taskTime = new Date(task.time);
-  taskDateTime.setHours(taskTime.getHours());
-  taskDateTime.setMinutes(taskTime.getMinutes());
-  taskDateTime.setSeconds(0);
-  taskDateTime.setMilliseconds(0);
-
-  // Default status
-  let statusText = "";
-
-  const diffMs = taskDateTime.getTime() - now.getTime();
-
-  if (diffMs > 0) {
-    // Task is in the future (upcoming)
-    const diffMinutes = Math.floor(diffMs / (1000 * 60)) % 60;
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60)) % 24;
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    statusText = `Upcoming in ${diffDays}d ${diffHours}h ${diffMinutes}m`;
-  } else if (
-    taskDateTime.toDateString() === now.toDateString()
-  ) {
-    // Same date as today = ongoing
-    statusText = "Ongoing";
-  } else {
-    // Task is in the past
-    statusText = "Completed";
-  }
+                  filteredTasks && filteredTasks.map((task:any,index)=>{
+                   
                   return (<View key={index} style={[styles.taskCard,{marginBottom:15,backgroundColor:`white`}]}>
                     <View>
                        <Text style={{fontSize:18,fontWeight:500}}>{task.title}</Text>
-                       <Button title="X" onPress={()=>handleDelete(index)}/>
+                       <Button title="X" onPress={()=>handleDelete(task.id)}/>
+                        <Button title="com" onPress={()=>handleComplete(task.id)} />
                     </View>
                    
                     <Text>{task.description}</Text>
@@ -277,7 +274,7 @@ const colors = [
                       <View  style={[styles.bubble,{alignItems:'center',gap:6,backgroundColor:'white'}]}>
                         <Feather name="calendar" size={20} color="black" />
                         <Text style={{fontWeight:'bold'}}>{
-                          statusText
+                          task.statusText
                           }</Text>
                     </View>
                       </View>
