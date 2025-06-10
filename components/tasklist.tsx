@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet , Pressable,ScrollView } from "react-native";
+import { View, Text, StyleSheet , Pressable,ScrollView , Button} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Feather from '@expo/vector-icons/Feather';
 import { useEffect, useState } from "react";
@@ -64,8 +64,7 @@ const categoriesList = [
 
 
 const getAllTasks = async () => {
-  const tasks = await AsyncStorage.getItem('posts');
-  return tasks ? JSON.parse(tasks) : [];
+  
 };
 
 
@@ -83,20 +82,30 @@ export default function Tasklist(){
     const [listType, setListType] = useState(0);
     const [filteredTasks , setFilteredTasks] = useState<taskType[]>([]);
 
-  useEffect(()=>{
+useEffect(() => {
+  async function getData() {
+    const tasks = await AsyncStorage.getItem('posts');
+    if (tasks) {
+      const parsedData = JSON.parse(tasks);
 
-    async function getData(){
-    const getTask = await getAllTasks();
-    console.log(getTask)
-    setTasks(getTask);
-    setFilteredTasks(getTask);
+      // 🔧 Convert string date/time back to Date objects
+      const data = parsedData.map((task: any) => ({
+        ...task,
+        date: new Date(task.date),
+        time: new Date(task.time),
+      }));
+
+      console.log(data);
+      setTasks(data);         
+      setFilteredTasks(data);
+    } else {
+      setTasks([]);
+      setFilteredTasks([]);
     }
+  }
 
-    getData()
-
-   
- 
-  },[])
+  getData();
+}, []);
     function filterTasks(){
       switch(listType){
         case 0: {
@@ -108,6 +117,21 @@ export default function Tasklist(){
         }
       }
     }
+
+
+  const handleDelete = async (index: number) => {
+  try {
+
+    const updatedTasks = tasks.filter((_, i) => i !== index);
+    console.log(updatedTasks);
+    setTasks(updatedTasks);
+
+
+    await AsyncStorage.setItem('posts', JSON.stringify(updatedTasks));
+  } catch (error) {
+    console.error('Error deleting task:', error);
+  }
+};
 
 
 function setPriorityColor (color:string):[string,string,...string[]]{
@@ -130,7 +154,7 @@ const colors = [
 ]
 
     return(
-        <View style={{width:'100%'}}>
+        <View style={{width:'100%',flex:1}}>
            <View  style={styles.categoryContainer}>
          <ScrollView style={{paddingVertical:10}} horizontal showsHorizontalScrollIndicator={false}>
         
@@ -156,13 +180,17 @@ const colors = [
                 /**colors[index%colors.length].primary**/
                   tasks && tasks.map((task,index)=>(
                   <View key={index} style={[styles.taskCard,{marginBottom:15,backgroundColor:`white`}]}>
-                    <Text style={{fontSize:18,fontWeight:500}}>{task.title}</Text>
+                    <View>
+                       <Text style={{fontSize:18,fontWeight:500}}>{task.title}</Text>
+                       <Button title="X" onPress={()=>handleDelete(index)}/>
+                    </View>
+                   
                     <Text>{task.description}</Text>
                     <View style={{flexDirection:'row',marginTop:15}}>
-                      <LinearGradient start={{x:0,y:0}} end={{x:1,y:0}} colors={setPriorityColor(task.priority)} style={[styles.bubble]}><Text style={{color:'white',fontWeight:'bold'}}>{task.priority} priority</Text></LinearGradient>
+                      <LinearGradient start={{x:0,y:0}} end={{x:1,y:0}} colors={setPriorityColor(task.priority)} style={[styles.bubble]}><Text style={{color:'white',fontWeight:'bold'}}>{task.priority}</Text></LinearGradient>
                       <View  style={[styles.bubble,{alignItems:'center',gap:6,backgroundColor:'white'}]}>
                         <Feather name="calendar" size={20} color="black" />
-                        {/* <Text style={{fontWeight:'bold'}}>{task.time.toLocaleDateString()}</Text> */}
+                        <Text style={{fontWeight:'bold'}}>{task.time.toLocaleTimeString()}</Text>
                     </View>
                       </View>
                      

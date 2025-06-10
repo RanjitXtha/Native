@@ -58,7 +58,7 @@ export default function Index() {
 
   return (
     <LinearGradient
-  colors={['#ffe4e6', '#faf5ff', '#eff6ff', '#cffafe']}
+  colors={['#ffe4e6', '#faf5ff', '#eff6ff', '#cffafe']} style={{flex:1}}
   
 
 >

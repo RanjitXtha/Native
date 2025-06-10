@@ -50,8 +50,8 @@ const handleSubmit=async()=>{
       title,
       description,
       priority,
-      date,
-      time,
+      date: date.toISOString(),
+      time :time.toISOString(),
       icon: icons[iconIndex],
     };
 console.log(taskData);
